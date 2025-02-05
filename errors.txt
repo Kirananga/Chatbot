@@ -1,0 +1,35 @@
+ModuleNotFoundError: No module named 'langchain_google_genai'
+Traceback:
+File "C:\Users\hp\chatbot\app.py", line 5, in <module>
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+
+ModuleNotFoundError: Module langchain_community.vectorstores not found. Please install langchain-community to access this module. You can install it using `pip install -U langchain-community`
+Traceback:
+File "C:\Users\hp\chatbot\venv\lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 88, in exec_func_with_error_handling
+    result = func()
+File "C:\Users\hp\chatbot\venv\lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 579, in code_to_exec
+    exec(code, module.__dict__)
+File "C:\Users\hp\chatbot\app.py", line 7, in <module>
+    from langchain.vectorstores import FAISS
+File "C:\Users\hp\chatbot\venv\lib\site-packages\langchain\vectorstores\__init__.py", line 186, in __getattr__
+    return _import_attribute(name)
+File "C:\Users\hp\chatbot\venv\lib\site-packages\langchain\_api\module_import.py", line 72, in import_by_name
+    raise ModuleNotFoundError(
+
+
+
+ValueError: The de-serialization relies loading a pickle file. Pickle files can be modified to deliver a malicious payload that results in execution of arbitrary code on your machine.You will need to set `allow_dangerous_deserialization` to `True` to enable deserialization. If you do this, make sure that you trust the source of the data. For example, if you are loading a file that you created, and know that no one else has modified the file, then this is safe to do. Do not set this to `True` if you are loading a file from an untrusted source (e.g., some random site on the internet.).
+Traceback:
+File "C:\Users\hp\chatbot\venv\lib\site-packages\streamlit\runtime\scriptrunner\exec_code.py", line 88, in exec_func_with_error_handling
+    result = func()
+File "C:\Users\hp\chatbot\venv\lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py", line 579, in code_to_exec
+    exec(code, module.__dict__)
+File "C:\Users\hp\chatbot\app.py", line 106, in <module>
+    main()
+File "C:\Users\hp\chatbot\app.py", line 91, in main
+    user_input(user_question)
+File "C:\Users\hp\chatbot\app.py", line 68, in user_input
+    new_db = FAISS.load_local("faiss_index", embeddings)
+File "C:\Users\hp\chatbot\venv\lib\site-packages\langchain_community\vectorstores\faiss.py", line 1190, in load_local
+    raise ValueError(
