@@ -23,7 +23,6 @@ def get_pdf_text(pdf_docs):
         for page in pdf_reader.pages:
             text += page.extract_text()
     return text
-
 def get_text_chunks(text):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     chunks = text_splitter.split_text(text)
@@ -34,23 +33,25 @@ def get_vector_store(text_chunks):
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_index")
 
-def get_conversational_chain():
+def get_conversational_chain(mode):
     prompt_template = """
-    Answer the question as detailed as possible from the provided context, make sure to provide all the details, 
-    if the answer is not in the provided context just say, "answer is not available in the context", don't provide the wrong answer.
+    Answer the question as detailed as possible from the provided context. If the answer is not in the provided context, 
+    just say, "Answer is not available in the context", and avoid providing incorrect information.
     
-    Context:\n {context}?\n
+    Context:\n {context}\n
     Question:\n {question}\n
 
     Answer:
     """
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
+    temperature = 0.3 if mode == "Deterministic" else 0.9
+    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=temperature)
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     chain = load_qa_chain(model, chain_type="stuff", prompt=prompt)
     return chain
 
-def get_summarization_chain():
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
+def get_summarization_chain(mode):
+    temperature = 0.3 if mode == "Deterministic" else 0.9
+    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=temperature)
     chain = load_summarize_chain(model, chain_type="map_reduce")
     return chain
 
@@ -65,28 +66,27 @@ def translate_input(user_question):
         print(f"Translation Error: {e}")
         return user_question 
 
-def user_input(user_question):
+def user_input(user_question, mode):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
     translated_question = translate_input(user_question)
 
     docs = new_db.similarity_search(translated_question)
-    chain = get_conversational_chain()
+    chain = get_conversational_chain(mode)
     response = chain(
         {"input_documents": docs, "question": translated_question},
         return_only_outputs=True
     )
 
-    print(response)
     st.write("Reply: ", response["output_text"])
 
-def summarize_pdf():
+def summarize_pdf(mode):
     try:
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
         docs = new_db.similarity_search("Summarize the content")
-        chain = get_summarization_chain()
+        chain = get_summarization_chain(mode)
         response = chain({"input_documents": docs}, return_only_outputs=True)
         st.write("Summary of the PDF Content:")
         st.write(response["output_text"])
@@ -97,10 +97,13 @@ def summarize_pdf():
 def main():
     st.set_page_config(page_title="Chat PDF", layout="wide")
     st.header("KIRAN BOT")
-    user_question = st.text_input("Ask a Question from the PDF Files")
 
+    st.sidebar.title("Mode Selection")
+    mode = st.sidebar.radio("Choose AI Mode:", ["Deterministic", "Creative"])
+
+    user_question = st.text_input("Ask a Question from the PDF Files")
     if user_question:
-        user_input(user_question)
+        user_input(user_question, mode)
 
     with st.sidebar:
         st.title("Menu:")
@@ -115,7 +118,7 @@ def main():
         
         if st.button("Summarize PDF Content"):
             with st.spinner("Summarizing..."):
-                summarize_pdf()
+                summarize_pdf(mode)
 
 if __name__ == "__main__":
     main()
