@@ -1,0 +1,3 @@
+##Run Application
+  First activate env using command as "conda activate venv"
+  Execute the Streamlit app using coomand as "streamlit run app.py"
